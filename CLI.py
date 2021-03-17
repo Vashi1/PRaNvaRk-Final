@@ -222,53 +222,57 @@ def add_order():
         mid = input("Enter the Mid of the product : ")
         cur.execute("select Quantity from stocks where mid = {}".format(mid))
         daa = cur.fetchall()
-        cur.execute("select GST from stocks where mid = {}".format(mid))
-        daaa = cur.fetchall()
-        print(daa)
-        gst = daaa[0][0]
-        a = daa[0][0]
-        cur.execute("select discount from stocks where Mid = {}".format(mid))
-        daa1 = cur.fetchall()
-        discount = daa1[0][0]
-        print("Quantity available is ", a)
-        quan = int(input("Enter the quantity : "))
-        if quan <= a:
-            cur.execute("update stocks set Quantity = Quantity - {} where Mid = {}".format(quan, mid))
-            myql.commit()
-            cur.execute("select Price from stocks where Mid = {}".format(mid))
-            price = cur.fetchall()
-            idprice = price[0][0] * quan
-            # itemgst = idprice *
-            tp = (idprice + ((gst * idprice) / 100))
-            gtp = tp - ((discount * tp) / 100)
-            ch = input("Do you want to continue(y/n)?")
-            if ch == "y" or ch == "Y":
-                cur.execute(
-                    "insert into bill_detail values({}, '{}', '{}', {}, {}, {}, {}, {})".format(sid, c_name, d1, mid,
-                                                                                                gst, discount, gtp,
-                                                                                                quan))
-                myql.commit()
-                pass
-            elif ch == "n" or ch == "N":
-                # tp = tp - ((discount * tp) / 100)
-                cur.execute(
-                    "insert into bill_detail values({}, '{}', '{}', {}, {}, {}, {}, {})".format(sid, c_name, d1, mid,
-                                                                                                gst, discount, gtp,
-                                                                                                quan))
-                myql.commit()
-                cur.execute("select sum(tp) from bill_detail where Bill_id = {} group by Bill_id".format(sid))
-                total_price = cur.fetchone()
-                print("total price", total_price[0])
-                cur.execute(
-                    "insert into sales values({}, '{}', {}, '{}')".format(sid, c_name, total_price[0], d1))
-                myql.commit()
-                f = open("Sales_id.txt", "w")
-                f.write(str(sid))
-                f.close()
-                myql.commit()
-                break
+        if daa == []:
+            print("ERROR ! No such medicine exists! Breaking the loop")
+            break
         else:
-            print("Please check the stocks again!")
+            cur.execute("select GST from stocks where mid = {}".format(mid))
+            daaa = cur.fetchall()
+            print(daa)
+            gst = daaa[0][0]
+            a = daa[0][0]
+            cur.execute("select discount from stocks where Mid = {}".format(mid))
+            daa1 = cur.fetchall()
+            discount = daa1[0][0]
+            print("Quantity available is ", a)
+            quan = int(input("Enter the quantity : "))
+            if quan <= a:
+                cur.execute("update stocks set Quantity = Quantity - {} where Mid = {}".format(quan, mid))
+                myql.commit()
+                cur.execute("select Price from stocks where Mid = {}".format(mid))
+                price = cur.fetchall()
+                idprice = price[0][0] * quan
+                # itemgst = idprice *
+                tp = (idprice + ((gst * idprice) / 100))
+                gtp = tp - ((discount * tp) / 100)
+                ch = input("Do you want to continue(y/n)?")
+                if ch == "y" or ch == "Y":
+                    cur.execute(
+                        "insert into bill_detail values({}, '{}', '{}', {}, {}, {}, {}, {})".format(sid, c_name, d1, mid,
+                                                                                                    gst, discount, gtp,
+                                                                                                    quan))
+                    myql.commit()
+                    pass
+                elif ch == "n" or ch == "N":
+                    # tp = tp - ((discount * tp) / 100)
+                    cur.execute(
+                        "insert into bill_detail values({}, '{}', '{}', {}, {}, {}, {}, {})".format(sid, c_name, d1, mid,
+                                                                                                    gst, discount, gtp,
+                                                                                                    quan))
+                    myql.commit()
+                    cur.execute("select sum(tp) from bill_detail where Bill_id = {} group by Bill_id".format(sid))
+                    total_price = cur.fetchone()
+                    print("total price", total_price[0])
+                    cur.execute(
+                    "insert into sales values({}, '{}', {}, '{}')".format(sid, c_name, total_price[0], d1))
+                    myql.commit()
+                    f = open("Sales_id.txt", "w")
+                    f.write(str(sid))
+                    f.close()
+                    myql.commit()
+                    break
+            else:
+                print("Please check the stocks again!")
 
 
 def sales_manage_main():
@@ -350,52 +354,57 @@ def add_sup_order():
                 cur = myql.cursor()
                 cur.execute("select * from stocks where Mid = {}".format(mid))
                 data_db = cur.fetchall()
-                # Existing
-                print("The data is shown below :-")
-                print("Mid", "Mname", 'Sname', "Bname", "Existing quantity", "price", "location", "EXP_data",
-                      'date of manufacturing',
-                      sep='\t\t')
-                for i in range(0, cur.rowcount):
-                    mname = data_db[i][1]
-                    sname = data_db[i][2]
-                    bname = data_db[i][3]
-                    quan = data_db[i][4]
-                    price = data_db[i][5]
-                    location = data_db[i][6]
-                    expdata = data_db[i][7]
-                    D_O_M = data_db[i][8]
-                    gst = data_db[i][9]
-                    discount = data_db[i][10]
-                    stat = 1
-                    # fixedTODO add the field name
-                    print(
-                        "------------------------------------------------------------------------------------------------------------------------------------------------------------------")
-                    print(mid, mname, sname, bname, quan, price, location, expdata, D_O_M, sep="\t\t")
-                ch = int(input("Enter the quantity to be ordered : "))
-                dod = input("Enter the date of delivery(YYYY-MM-DD) : ")
-                cur.execute(
-                    "insert into supplier_data(orderid, order_date, supplier_id, Mid, Quantity, Price, Delievery_date, "
-                    "Mname, Saltname, Brandname, Location, GST, discount, status, order_sp) values({},'{}',{},{},{},{},"
-                    "'{}','{}', '{}', '{}', '{}', {}, {}, {}, {})".format(
-                        data, d1, supid, mid, ch, price, dod, mname, sname, bname, location, gst, discount,
-                        stat, order_sp))
-                myql.commit()
-                print(cur.rowcount, "Order was added")
-                myql.commit()
-                f = open("Supply.txt", "w+")
-                data = data + 1
-                f.write(str(data))
-                f.close()
-                f = open("order_sp.txt", "w")
-                f.write(str(data))
-                f.close()
-                choi_con = input("Do you want to continue(y/n) : ")
-                if choi_con.lower() == "y" or "yes":
-                    pass
-                elif choi_con.lower() == "n" or "no":
+                if data_db == []:
+                    print("Error ! No such medicine exists! ")
                     break
                 else:
-                    break
+                # Existing
+                    print("The data is shown below :-")
+                    print("Mid", "Mname", 'Sname', "Bname", "Existing quantity", "price", "location", "EXP_data",
+                          'date of manufacturing',
+                          sep='\t\t')
+                    for i in range(0, cur.rowcount):
+                        mname = data_db[i][1]
+                        sname = data_db[i][2]
+                        bname = data_db[i][3]
+                        quan = data_db[i][4]
+                        price = data_db[i][5]
+                        location = data_db[i][6]
+                        expdata = data_db[i][7]
+                        D_O_M = data_db[i][8]
+                        gst = data_db[i][9]
+                        discount = data_db[i][10]
+                        stat = 1
+                        # fixedTODO add the field name
+                        print(
+                            "------------------------------------------------------------------------------------------------------------------------------------------------------------------")
+                        print(mid, mname, sname, bname, quan, price, location, expdata, D_O_M, sep="\t\t")
+                    ch = int(input("Enter the quantity to be ordered : "))
+                    dod = input("Enter the date of delivery(YYYY-MM-DD) : ")
+                    cur.execute(
+                        "insert into supplier_data(orderid, order_date, supplier_id, Mid, Quantity, Price, Delievery_date, "
+                        "Mname, Saltname, Brandname, Location, GST, discount, status, order_sp) values({},'{}',{},{},{},{},"
+                        "'{}','{}', '{}', '{}', '{}', {}, {}, {}, {})".format(
+                        data, d1, supid, mid, ch, price, dod, mname, sname, bname, location, gst, discount,
+                        stat, order_sp))
+                    myql.commit()
+                    print(cur.rowcount, "Order was added")
+                    myql.commit()
+                    f = open("Supply.txt", "w+")
+                    data = data + 1
+                    f.write(str(data))
+                    f.close()
+
+                    choi_con = input("Do you want to continue(y/n) : ")
+                    if choi_con.lower() == "y" or choi_con == "yes":
+                        pass
+                    elif choi_con.lower() == "n" or choi_con == "no":
+                        f = open("order_sp.txt", "w")
+                        f.write(str(data))
+                        f.close()
+                        break
+                    else:
+                        break
         elif choice == "0":
             while True:
                 from datetime import date
@@ -437,14 +446,14 @@ def add_sup_order():
                 mid += 1
                 f.write(str(mid))
                 f.close()
-                a = open("order_sp.txt", "w")
-                order_sp += 1
-                a.write(str(order_sp))
-                a.close()
                 choi_con = input("Do you want to continue(y/n) : ")
                 if choi_con.lower() == "y" or "yes":
                     pass
                 elif choi_con.lower() == "n" or "no":
+                    a = open("order_sp.txt", "w")
+                    order_sp += 1
+                    a.write(str(order_sp))
+                    a.close()
                     break
                 else:
                     break
@@ -459,6 +468,7 @@ def recieve_sup_order():
         "select orderid, order_date, supplier_id, Mid, Quantity, Price, Delievery_date from supplier_data where order_sp = {}".format(
             oid0))
     data = cur.fetchall()
+    print(cur.rowcount)
     if data == None or data == []:
         print("The Table is empty")
     else:
