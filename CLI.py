@@ -444,12 +444,13 @@ def add_sup_order():
                 f.close()
                 f = open("Mid.txt", "w+")
                 mid += 1
+                print(mid)
                 f.write(str(mid))
                 f.close()
                 choi_con = input("Do you want to continue(y/n) : ")
-                if choi_con.lower() == "y" or "yes":
+                if choi_con.lower() == "y" or choi_con.lower() == "yes":
                     pass
-                elif choi_con.lower() == "n" or "no":
+                elif choi_con.lower() == "n" or choi_con.lower() == "no":
                     a = open("order_sp.txt", "w")
                     order_sp += 1
                     a.write(str(order_sp))
@@ -505,7 +506,9 @@ def recieve_sup_order():
                         "select Mid, Mname, Saltname, Brandname, Quantity, Price, Location, Exp_date, order_date, GST, discount from supplier_data where order_sp = {}".format(
                             oid0))
                     data_sup_data = cur.fetchall()
+                    counter = 0
                     for i in range(0, cur.rowcount):
+                        mid = data_sup_data[i][0]
                         mname = data_sup_data[i][1]
                         s_nme = data_sup_data[i][2]
                         bname = data_sup_data[i][3]
@@ -531,6 +534,8 @@ def recieve_sup_order():
                         myql.commit()
                         cur.execute("update supplier_data set status = 2 where order_sp = {}".format(oid0))
                         myql.commit()
+                        counter += 1
+                    break
                 elif dat[0][0] == 2:
                     print("The order is already added")
             if ch == "n":
